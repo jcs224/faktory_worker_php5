@@ -19,15 +19,18 @@ class FaktoryClient {
         $socket = $this->connect();
         $response = $this->writeLine($socket, 'FETCH', implode(' ', $queues));
         $char = $response[0];
-        
         if ($char === '$') {
-            $payload = $this->readLine($socket);
-            $this->close($socket);
-            return json_decode($payload, true);
-        } else {
-            $this->close($socket);
-            return $response;
+            $count = trim(substr($response, 1, strpos($response, "\r\n")));
+            $data = null;
+            if ($count > 0) {
+                $data = substr($response, strlen($count) + 1);
+                $this->close($socket);
+                return json_decode($data, true);
+            }
+            return $data;
         }
+        $this->close($socket);
+        return $response;
     }
 
     public function ack($jobId) {

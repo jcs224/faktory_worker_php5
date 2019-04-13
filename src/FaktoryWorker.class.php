@@ -23,7 +23,7 @@ class FaktoryWorker {
         do {
             echo "grabbing job\n";
             $job = $this->client->fetch($this->queues);
-
+            
             if ($job !== null) {
                 echo "registering job\n";
                 $callable = $this->jobTypes[$job['jobtype']];
