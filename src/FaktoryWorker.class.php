@@ -41,6 +41,6 @@ class FaktoryWorker {
             }
 
             usleep(100);
-        } while (true);
+        } while ($daemonize && !$this->stop);
     }
 }
