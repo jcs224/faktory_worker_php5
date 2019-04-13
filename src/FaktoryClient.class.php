@@ -11,7 +11,7 @@ class FaktoryClient {
 
     public function push($job) {
         $socket = $this->connect();
-        $this->writeLine($socket, 'PUSH', json_encode($job));
+        $this->writeLine($socket, 'PUSH', $job);
         $this->close($socket);
     }
 
@@ -27,7 +27,7 @@ class FaktoryClient {
                 throw new \Exception('Hi not received :(');
             }
 
-            $this->writeLine($socket, 'HELLO', "{\"wid\":\"foo\"}");
+            $this->writeLine($socket, 'HELLO', array("wid" => "foo"));
             return $socket;
         }
     }
@@ -40,8 +40,8 @@ class FaktoryClient {
         return $contents;
     }
 
-    private function writeLine($socket, $command, $json) {
-        $buffer = $command.' '.$json."\r\n";
+    private function writeLine($socket, $command, $args) {
+        $buffer = $command.' '.json_encode($args)."\r\n";
         stream_socket_sendto($socket, $buffer);
         $read = $this->readLine($socket);
         return $read;
