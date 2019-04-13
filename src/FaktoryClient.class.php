@@ -23,7 +23,8 @@ class FaktoryClient {
             $count = trim(substr($response, 1, strpos($response, "\r\n")));
             $data = null;
             if ($count > 0) {
-                $data = substr($response, strlen($count) + 1);
+                echo $count."\n";
+                $data = $this->readLine($socket);
                 $this->close($socket);
                 return json_decode($data, true);
             }

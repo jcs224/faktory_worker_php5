@@ -23,7 +23,7 @@ class FaktoryWorker {
         do {
             echo "grabbing job\n";
             $job = $this->client->fetch($this->queues);
-            
+
             if ($job !== null) {
                 echo "registering job\n";
                 $callable = $this->jobTypes[$job['jobtype']];
@@ -35,9 +35,9 @@ class FaktoryWorker {
                 } catch (\Exception $e) {
                     echo "job failure";
                     $this->client->fail($job['jid']);
-                } finally {
-                    exit(0);
                 }
+            } else {
+                echo "no jobs\n";
             }
 
             usleep(100);
