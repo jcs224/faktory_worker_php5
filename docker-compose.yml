@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  faktory_php:
+    container_name: faktory-php
+    image: php:5.6-apache
+    ports:
+      - 80:80
+    volumes:
+      - ./src/:/var/www/html/
+  faktory:
+    container_name: faktory
+    image: contribsys/faktory
+    ports:
+      - 7419:7419
+      - 7420:7420
