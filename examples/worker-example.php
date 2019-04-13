@@ -11,4 +11,9 @@ $worker->register('cooljob', function($job) {
     var_dump($job);
 });
 
+$worker->register('cooljob2', function($job) {
+    echo "This is cooler.";
+    var_dump($job);
+});
+
 $worker->run();

@@ -12,3 +12,12 @@ $client->push([
         2
     ]
 ]);
+
+$client->push([
+    "jid" => "12345abcdef",
+    "jobtype" => "cooljob2",
+    "args" => [
+        3,
+        4
+    ]
+]);
