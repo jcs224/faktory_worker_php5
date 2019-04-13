@@ -9,7 +9,13 @@ class FaktoryClient {
         $this->faktoryPort = $port;
     }
 
-    public function connect() {
+    public function push($job) {
+        $socket = $this->connect();
+        $this->writeLine($socket, 'PUSH', json_encode($job));
+        $this->close($socket);
+    }
+
+    private function connect() {
         $socket = stream_socket_client("tcp://{$this->faktoryHost}:{$this->faktoryPort}", $errno, $errstr, 30);
         if (!$socket) {
             echo "$errstr ($errno)\n";
@@ -24,12 +30,6 @@ class FaktoryClient {
             $this->writeLine($socket, 'HELLO', "{\"wid\":\"foo\"}");
             return $socket;
         }
-    }
-
-    public function push($job) {
-        $socket = $this->connect();
-        $this->writeLine($socket, 'PUSH', json_encode($job));
-        $this->close($socket);
     }
 
     private function readLine($socket) {
