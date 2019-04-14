@@ -13,7 +13,7 @@ class FaktoryWorker {
         $this->queues = array('default');
     }
 
-    public function setQUeues($queues) {
+    public function setQueues($queues) {
         $this->queues = $queues;
     }
 
