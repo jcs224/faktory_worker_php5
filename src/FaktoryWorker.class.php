@@ -19,7 +19,7 @@ class FaktoryWorker {
         $this->jobTypes[$jobType] = $callable;
     }
 
-    public function run($daemonize = true) {
+    public function run($daemonize = false) {
         do {
             echo "grabbing job\n";
             $job = $this->client->fetch($this->queues);
