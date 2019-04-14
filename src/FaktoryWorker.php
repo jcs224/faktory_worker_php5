@@ -1,5 +1,7 @@
 <?php
 
+namespace Faktory\Queue;
+
 class FaktoryWorker {
     private $client;
     private $queues;

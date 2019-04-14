@@ -1,7 +1,9 @@
 <?php
 
-require "../src/FaktoryClient.class.php";
-require "../src/FaktoryWorker.class.php";
+require __DIR__."/../vendor/autoload.php";
+
+use Faktory\Queue\FaktoryClient;
+use Faktory\Queue\FaktoryWorker;
 
 $client = new FaktoryClient('faktory', '7419');
 $worker = new FaktoryWorker($client);

@@ -1,6 +1,8 @@
 <?php
 
-require "../src/FaktoryClient.class.php";
+require __DIR__."/../vendor/autoload.php";
+
+use Faktory\Queue\FaktoryClient;
 
 $client = new FaktoryClient('faktory', '7419');
 

@@ -1,5 +1,7 @@
 <?php
 
+namespace Faktory\Queue;
+
 class FaktoryClient {
     private $faktoryHost;
     private $faktoryPort;
