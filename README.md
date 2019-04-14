@@ -6,6 +6,8 @@ Most of the code is forked from the [Official PHP library](https://github.com/ba
 ### Supported Faktory versions
 - 0.9.7
 
+It could work on earlier versions, but untested.
+
 ## Why this library, instead of the current official PHP worker library?
 There are a couple reasons:
 - If you still work primarily with legacy PHP versions, older than PHP 7. The official library uses some features only available in 7, such as `pcntl_async_signals()`.
