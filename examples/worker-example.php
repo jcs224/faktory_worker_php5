@@ -16,4 +16,4 @@ $worker->register('cooljob2', function($job) {
     var_dump($job);
 });
 
-$worker->run();
+$worker->run(true);
