@@ -23,23 +23,17 @@ class FaktoryWorker {
 
     public function run($daemonize = false) {
         do {
-            echo "grabbing job\n";
             $job = $this->client->fetch($this->queues);
 
             if ($job !== null) {
-                echo "registering job\n";
                 $callable = $this->jobTypes[$job['jobtype']];
 
                 try {
                     call_user_func($callable, $job);
                     $this->client->ack($job['jid']);
-                    echo "job success";
                 } catch (\Exception $e) {
-                    echo "job failure";
                     $this->client->fail($job['jid']);
                 }
-            } else {
-                echo "no jobs\n";
             }
 
             usleep(100);
