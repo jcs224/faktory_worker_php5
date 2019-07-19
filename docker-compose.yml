@@ -10,7 +10,7 @@ services:
       - ./:/var/www/html/
   faktory:
     container_name: faktory
-    image: contribsys/faktory
+    image: contribsys/faktory:0.9.7
     ports:
       - 7419:7419
       - 7420:7420
