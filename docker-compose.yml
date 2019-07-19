@@ -8,7 +8,6 @@ services:
       - 80:80
     volumes:
       - ./:/var/www/html/
-    command: bash -c "cd /var/www/html && apt-get update && apt-get install -y curl && curl -s https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer && composer install"
   faktory:
     container_name: faktory
     image: contribsys/faktory:0.9.7
