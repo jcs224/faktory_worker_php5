@@ -1,6 +1,6 @@
 <?php
 
-namespace Faktory\Queue;
+namespace FaktoryQueue;
 
 class FaktoryJob implements \JsonSerializable {
     private $id;
