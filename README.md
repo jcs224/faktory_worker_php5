@@ -5,6 +5,7 @@ Most of the code is forked from the [Official PHP library](https://github.com/ba
 
 ### Supported Faktory versions
 - 0.9.7
+- 1.0.1
 
 It could work on earlier versions, but untested.
 
