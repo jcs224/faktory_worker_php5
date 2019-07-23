@@ -1,7 +1,7 @@
 # Faktory PHP 5 Library
 Faktory job queue library for PHP. Compatible with PHP 5.6 (and maybe lower, but untested)
 
-Most of the code is forked from the [Official PHP library](https://github.com/basekit/faktory_worker_php).
+Most of the code is forked from the [7.1 PHP library](https://github.com/basekit/faktory_worker_php).
 
 ### Supported Faktory versions
 - 0.9.7
