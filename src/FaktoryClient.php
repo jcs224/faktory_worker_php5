@@ -5,10 +5,12 @@ namespace FaktoryQueue;
 class FaktoryClient {
     private $faktoryHost;
     private $faktoryPort;
+    private $faktoryPassword;
 
-    public function __construct($host, $port) {
+    public function __construct($host, $port, $password = null) {
         $this->faktoryHost = $host;
         $this->faktoryPort = $port;
+        $this->faktoryPassword = $password;
     }
 
     public function push($job) {
@@ -55,11 +57,39 @@ class FaktoryClient {
         } else {
             $response = $this->readLine($socket);
 
-            if ($response !== "+HI {\"v\":2}\r\n") {
-                throw new \Exception('Hi not received :(');
-            }
+            if (strpos($response, "\"s\":") !== false && strpos($response, "\"i\":") !== false) {
+                // Requires password
+                if (!$this->faktoryPassword) {
+                    throw new \Exception('Password is required.');
+                }
 
-            $this->writeLine($socket, 'HELLO', "{\"wid\":\"foo\"}");
+                $payloadArray = json_decode(substr($response, strpos($response, '{')));
+
+                $authData = $this->faktoryPassword.$payloadArray->s;
+                $iterations = $payloadArray->i;
+                for ($i = 0; $i < $iterations; $i++) {
+                    $authData = hash('sha256', $authData, true);
+                }
+                
+                $requestWithPassword = json_encode([
+                    'wid' => 'foo',
+                    'pwdhash' => bin2hex($authData),
+                    'v' => 2
+                ]);
+
+                $responseWithPassword = $this->writeLine($socket, 'HELLO', $requestWithPassword);
+                if (strpos($responseWithPassword, "ERR Invalid password")) {
+                    throw new \Exception('Password is incorrect.');
+                }
+
+            } else {
+                // Doesn't require password
+                if ($response !== "+HI {\"v\":2}\r\n") {
+                    throw new \Exception('Hi not received :(');
+                }
+    
+                $this->writeLine($socket, 'HELLO', "{\"wid\":\"foo\"}");
+            }
             return $socket;
         }
     }

@@ -5,6 +5,7 @@ require __DIR__."/../vendor/autoload.php";
 use FaktoryQueue\FaktoryClient;
 use FaktoryQueue\FaktoryJob;
 
+// $client = new FaktoryClient('faktory', '7419', 'insecure_password'); // Example with password
 $client = new FaktoryClient('faktory', '7419');
 $job1 = new FaktoryJob('12345abcde', 'cooljob', [
     1,

@@ -14,3 +14,5 @@ services:
     ports:
       - 7419:7419
       - 7420:7420
+    # environment:
+    #   - FAKTORY_PASSWORD=insecure_password
