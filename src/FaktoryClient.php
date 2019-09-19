@@ -66,8 +66,7 @@ class FaktoryClient {
                 $payloadArray = json_decode(substr($response, strpos($response, '{')));
 
                 $authData = $this->faktoryPassword.$payloadArray->s;
-                $iterations = $payloadArray->i;
-                for ($i = 0; $i < $iterations; $i++) {
+                for ($i = 0; $i < $payloadArray->i; $i++) {
                     $authData = hash('sha256', $authData, true);
                 }
                 
