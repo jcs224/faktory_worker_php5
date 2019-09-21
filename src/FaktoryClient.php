@@ -97,7 +97,7 @@ class FaktoryClient {
                     throw new \Exception('Hi not received :(');
                 }
     
-                $this->writeLine($socket, 'HELLO', json_encode($responeDefaults));
+                $this->writeLine($socket, 'HELLO', json_encode($requestDefaults));
             }
             return $socket;
         }
