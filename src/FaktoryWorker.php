@@ -7,10 +7,17 @@ class FaktoryWorker {
     private $queues;
     private $jobTypes = [];
     private $stop = false;
+    private $id = null;
     
     public function __construct($client) {
         $this->client = $client;
         $this->queues = array('default');
+        $this->id = 'foo';
+        $this->client->setWorker($this);
+    }
+
+    public function getID() {
+        return $this->id;
     }
 
     public function setQueues($queues) {

@@ -6,11 +6,17 @@ class FaktoryClient {
     private $faktoryHost;
     private $faktoryPort;
     private $faktoryPassword;
+    private $worker;
 
     public function __construct($host, $port, $password = null) {
         $this->faktoryHost = $host;
         $this->faktoryPort = $port;
         $this->faktoryPassword = $password;
+        $this->worker = null;
+    }
+
+    public function setWorker($worker) {
+        $this->worker = $worker;
     }
 
     public function push($job) {
@@ -57,6 +63,15 @@ class FaktoryClient {
         } else {
             $response = $this->readLine($socket);
 
+            $requestDefaults = [
+                'v' => 2
+            ];
+
+            // If the client is a worker, send the wid with request
+            if ($this->worker) {
+                $requestDefaults = array_merge(['wid' => $this->worker->getID()], $requestDefaults);
+            }
+
             if (strpos($response, "\"s\":") !== false && strpos($response, "\"i\":") !== false) {
                 // Requires password
                 if (!$this->faktoryPassword) {
@@ -70,12 +85,7 @@ class FaktoryClient {
                     $authData = hash('sha256', $authData, true);
                 }
                 
-                $requestWithPassword = json_encode([
-                    'wid' => 'foo',
-                    'pwdhash' => bin2hex($authData),
-                    'v' => 2
-                ]);
-
+                $requestWithPassword = json_encode(array_merge(['pwdhash' => bin2hex($authData)], $requestDefaults));
                 $responseWithPassword = $this->writeLine($socket, 'HELLO', $requestWithPassword);
                 if (strpos($responseWithPassword, "ERR Invalid password")) {
                     throw new \Exception('Password is incorrect.');
@@ -87,7 +97,7 @@ class FaktoryClient {
                     throw new \Exception('Hi not received :(');
                 }
     
-                $this->writeLine($socket, 'HELLO', "{\"wid\":\"foo\"}");
+                $this->writeLine($socket, 'HELLO', json_encode($responeDefaults));
             }
             return $socket;
         }
