@@ -7,8 +7,8 @@ class FaktoryJob implements \JsonSerializable {
     private $type;
     private $args;
 
-    public function __construct($id, $type, $args) {
-        $this->id = $id;
+    public function __construct($type, $args) {
+        $this->id = uniqid();
         $this->type = $type;
         $this->args = $args;
     }
