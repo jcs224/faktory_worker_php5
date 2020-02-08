@@ -20,7 +20,7 @@ composer require jcs224/faktory_worker_php5
 use FaktoryQueue\FaktoryClient;
 use FaktoryQueue\FaktoryJob;
 
-// $client = new FaktoryClient('faktory', '7419', 'insecure_password'); // Example with password
+// $client = new FaktoryClient('localhost', '7419', 'insecure_password'); // Example with password
 $client = new FaktoryClient('faktory', '7419');
 $job1 = new FaktoryJob('cooljob', [
     1,
@@ -42,7 +42,7 @@ $client->push($job2);
 use FaktoryQueue\FaktoryClient;
 use FaktoryQueue\FaktoryWorker;
 
-// $client = new FaktoryClient('faktory', '7419', 'insecure_password'); // Example with password
+// $client = new FaktoryClient('localhost', '7419', 'insecure_password'); // Example with password
 $client = new FaktoryClient('faktory', '7419');
 $worker = new FaktoryWorker($client);
 
