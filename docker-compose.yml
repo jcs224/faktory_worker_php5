@@ -4,8 +4,6 @@ services:
   faktory_php:
     container_name: faktory-php
     image: php:5.6-apache
-    ports:
-      - 80:80
     volumes:
       - ./:/var/www/html/
   faktory:
