@@ -9,10 +9,10 @@ class FaktoryWorker {
     private $stop = false;
     private $id = null;
     
-    public function __construct($client) {
+    public function __construct($client, $processId = null) {
         $this->client = $client;
         $this->queues = array('default');
-        $this->id = 'foo';
+        $this->id = $processId ?: substr(sha1(rand()), 0, 8);
         $this->client->setWorker($this);
     }
 
