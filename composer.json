@@ -1,6 +1,8 @@
 {
     "name": "jcs224/faktory_worker_php5",
     "description": "Faktory job queue library for PHP. Compatible with PHP 5.6",
+    "license": "MIT",
+    "type": "library",
     "authors": [
         {
             "name": "Joe Sweeney",
