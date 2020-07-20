@@ -36,6 +36,50 @@ $client->push($job1);
 $client->push($job2);
 ```
 
+### Scheduled jobs
+You can also schedule when a jobs will run as you push them onto the queue. Here are some examples:
+```php
+$client = new FaktoryClient('faktory', '7419');
+
+$job1 = new FaktoryJob('CoolJob1', [
+    1,
+    2
+]);
+
+$job2 = new FaktoryJob('CoolJob2', [
+    3,
+    4
+]);
+
+$job3 = new FaktoryJob('CoolJob3', [
+    5,
+    6
+]);
+
+$job4 = new FaktoryJob('CoolJob4', [
+    7,
+    8
+]);
+
+$job5 = new FaktoryJob('CoolJob5', [
+    9,
+    10
+]);
+
+$job1->inSeconds(300);
+$job2->inMinutes(15);
+$job3->inHours(24);
+
+$date = date(DATE_RFC3339, strtotime('+5 days'));
+$job4->at($date);    
+
+$client->push($job1);
+$client->push($job2);
+$client->push($job3);
+$client->push($job4);
+$client->push($job5);
+```
+
 ## Starting a worker that listens for jobs
 
 ```php
