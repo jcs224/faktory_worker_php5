@@ -37,7 +37,7 @@ $client->push($job2);
 ```
 
 ### Scheduled jobs
-You can also schedule when a jobs will run as you push them onto the queue. Here are some examples:
+You can also schedule when jobs will run as you push them onto the queue. Here are some examples:
 ```php
 $client = new FaktoryClient('faktory', '7419');
 
