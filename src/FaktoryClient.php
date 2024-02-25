@@ -2,21 +2,27 @@
 
 namespace FaktoryQueue;
 
+const Disconnected = 1;
+const Connecting = 2;
+const Connected = 3;
+
 class FaktoryClient
 {
     private $faktoryHost;
     private $faktoryPort;
     private $faktoryPassword;
     private $worker;
-    private $socket;
+    private $connectionState;
+    protected $socket;
 
-    public function __construct($host, $port, $password = null)
+    public function __construct($socketImpl, $host, $port, $password = null)
     {
         $this->faktoryHost = $host;
         $this->faktoryPort = $port;
         $this->faktoryPassword = $password;
         $this->worker = null;
-        $this->socket = null;
+        $this->socket = new $socketImpl("tcp://{$this->faktoryHost}:{$this->faktoryPort}", 30);
+        $this->connectionState = Disconnected;
     }
 
     public function setWorker($worker)
@@ -24,9 +30,15 @@ class FaktoryClient
         $this->worker = $worker;
     }
 
-    public function push($job)
+    public function push($job): bool
     {
-        $this->writeLine('PUSH', json_encode($job));
+        $response = $this->writeLine('PUSH', json_encode($job));
+        return $response == "+OK\r\n";
+    }
+
+    public function getSocket()
+    {
+        return $this->socket;
     }
 
     public function fetch($queues = array('default'))
@@ -35,103 +47,101 @@ class FaktoryClient
         $char = $response[0];
         if ($char === '$') {
             $count = trim(substr($response, 1, strpos($response, "\r\n")));
-            $data = null;
             if ($count > 0) {
                 $data = $this->readLine();
                 return json_decode($data, true);
             }
-            return $data;
+            return false;
         }
-        return $response;
+        return false;
     }
 
-    public function ack($jobId)
+    public function ack($jobId): bool
     {
-        $this->writeLine('ACK', json_encode(['jid' => $jobId]));
+        $response = $this->writeLine('ACK', json_encode(['jid' => $jobId]));
+        return $response == "+OK\r\n";
     }
 
     public function fail($jobId)
     {
-        $this->writeLine('FAIL', json_encode(['jid' => $jobId]));
+        $response = $this->writeLine('FAIL', json_encode(['jid' => $jobId]));
+        return $response == "+OK\r\n";
     }
 
-    private function connect()
+    public function connect()
     {
-        if ($this->socket !== null) {
-            return true;
+        if ($this->connectionState !== Disconnected) {
+            return;
         }
 
-        $this->socket = stream_socket_client("tcp://{$this->faktoryHost}:{$this->faktoryPort}", $errno, $errstr, 30);
-        if (!$this->socket) {
-            echo "$errstr ($errno)\n";
-            return false;
+        $this->socket->connect();
+        $this->connectionState = Connecting;
+
+        $response = $this->readLine();
+        $requestDefaults = [
+            'v' => 2
+        ];
+
+        // If the client is a worker, send the wid with request
+        if ($this->worker) {
+            $requestDefaults = array_merge(['wid' => $this->worker->getID()], $requestDefaults);
+        }
+
+        if (strpos($response, "\"s\":") !== false && strpos($response, "\"i\":") !== false) {
+            // Requires password
+            if (!$this->faktoryPassword) {
+                throw new \Exception('Password is required.');
+            }
+
+            $payloadArray = json_decode(substr($response, strpos($response, '{')));
+
+            $authData = $this->faktoryPassword . $payloadArray->s;
+            for ($i = 0; $i < $payloadArray->i; $i++) {
+                $authData = hash('sha256', $authData, true);
+            }
+
+            $requestWithPassword = json_encode(array_merge(['pwdhash' => bin2hex($authData)], $requestDefaults));
+            $responseWithPassword = $this->writeLine('HELLO', $requestWithPassword);
+            if (strpos($responseWithPassword, "ERR Invalid password")) {
+                throw new \Exception('Password is incorrect.');
+            }
         } else {
-            $response = $this->readLine();
-
-            $requestDefaults = [
-                'v' => 2
-            ];
-
-            // If the client is a worker, send the wid with request
-            if ($this->worker) {
-                $requestDefaults = array_merge(['wid' => $this->worker->getID()], $requestDefaults);
+            // Doesn't require password
+            if ($response !== "+HI {\"v\":2}\r\n") {
+                throw new \Exception('Hi not received');
             }
 
-            if (strpos($response, "\"s\":") !== false && strpos($response, "\"i\":") !== false) {
-                // Requires password
-                if (!$this->faktoryPassword) {
-                    throw new \Exception('Password is required.');
-                }
-
-                $payloadArray = json_decode(substr($response, strpos($response, '{')));
-
-                $authData = $this->faktoryPassword . $payloadArray->s;
-                for ($i = 0; $i < $payloadArray->i; $i++) {
-                    $authData = hash('sha256', $authData, true);
-                }
-
-                $requestWithPassword = json_encode(array_merge(['pwdhash' => bin2hex($authData)], $requestDefaults));
-                $responseWithPassword = $this->writeLine('HELLO', $requestWithPassword);
-                if (strpos($responseWithPassword, "ERR Invalid password")) {
-                    throw new \Exception('Password is incorrect.');
-                }
-            } else {
-                // Doesn't require password
-                if ($response !== "+HI {\"v\":2}\r\n") {
-                    throw new \Exception('Hi not received :(');
-                }
-
-                $this->writeLine('HELLO', json_encode($requestDefaults));
-            }
-            return true;
+            $this->writeLine('HELLO', json_encode($requestDefaults));
         }
+        $this->connectionState = Connected;
+    }
+
+    public function isConnected(): bool
+    {
+        return $this->connectionState == Connected;
     }
 
     private function readLine()
     {
-        if (!$this->connect()) {
-            return null;
+        if ($this->connectionState == Disconnected) {
+            $this->connect();
         }
-        $contents = fgets($this->socket, 1024);
-        while (strpos($contents, "\r\n") === false) {
-            $contents .= fgets($this->socket, 1024 - strlen($contents));
-        }
-        return $contents;
+        return $this->socket->read();
     }
 
     private function writeLine($command, $json)
     {
-        if (!$this->connect()) {
-            return null;
+        if ($this->connectionState == Disconnected) {
+            $this->connect();
         }
         $buffer = $command . ' ' . $json . "\r\n";
-        stream_socket_sendto($this->socket, $buffer);
+        $this->socket->write($buffer);
         return $this->readLine();
     }
 
     private function close()
     {
-        fclose($this->socket);
-        $this->socket = null;
+        $this->socket->close();
+        $this->connectionState = Disconnected;
     }
 }

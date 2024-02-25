@@ -38,7 +38,7 @@ class FaktoryWorker
         do {
             $job = $this->client->fetch($this->queues);
 
-            if ($job !== null) {
+            if ($job) {
                 $callable = $this->jobTypes[$job['jobtype']];
 
                 try {
