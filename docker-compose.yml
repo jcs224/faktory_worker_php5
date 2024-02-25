@@ -1,16 +1,11 @@
 version: '3'
 
 services:
-  faktory_php:
-    container_name: faktory-php
-    image: php:5.6-apache
-    volumes:
-      - ./:/var/www/html/
   faktory:
     container_name: faktory
-    image: contribsys/faktory
+    image: contribsys/faktory:1.7.0
     ports:
-      - 7419:7419
-      - 7420:7420
+      - "7419:7419"
+      - "7420:7420"
     # environment:
     #   - FAKTORY_PASSWORD=insecure_password

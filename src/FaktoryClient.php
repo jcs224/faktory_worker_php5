@@ -2,66 +2,71 @@
 
 namespace FaktoryQueue;
 
-class FaktoryClient {
+class FaktoryClient
+{
     private $faktoryHost;
     private $faktoryPort;
     private $faktoryPassword;
     private $worker;
+    private $socket;
 
-    public function __construct($host, $port, $password = null) {
+    public function __construct($host, $port, $password = null)
+    {
         $this->faktoryHost = $host;
         $this->faktoryPort = $port;
         $this->faktoryPassword = $password;
         $this->worker = null;
+        $this->socket = null;
     }
 
-    public function setWorker($worker) {
+    public function setWorker($worker)
+    {
         $this->worker = $worker;
     }
 
-    public function push($job) {
-        $socket = $this->connect();
-        $this->writeLine($socket, 'PUSH', json_encode($job));
-        $this->close($socket);
+    public function push($job)
+    {
+        $this->writeLine('PUSH', json_encode($job));
     }
 
-    public function fetch($queues = array('default')) {
-        $socket = $this->connect();
-        $response = $this->writeLine($socket, 'FETCH', implode(' ', $queues));
+    public function fetch($queues = array('default'))
+    {
+        $response = $this->writeLine('FETCH', implode(' ', $queues));
         $char = $response[0];
         if ($char === '$') {
             $count = trim(substr($response, 1, strpos($response, "\r\n")));
             $data = null;
             if ($count > 0) {
-                $data = $this->readLine($socket);
-                $this->close($socket);
+                $data = $this->readLine();
                 return json_decode($data, true);
             }
             return $data;
         }
-        $this->close($socket);
         return $response;
     }
 
-    public function ack($jobId) {
-        $socket = $this->connect();
-        $this->writeLine($socket, 'ACK', json_encode(['jid' => $jobId]));
-        $this->close($socket);
+    public function ack($jobId)
+    {
+        $this->writeLine('ACK', json_encode(['jid' => $jobId]));
     }
 
-    public function fail($jobId) {
-        $socket = $this->connect();
-        $this->writeLine($socket, 'FAIL', json_encode(['jid' => $jobId]));
-        $this->close($socket);
+    public function fail($jobId)
+    {
+        $this->writeLine('FAIL', json_encode(['jid' => $jobId]));
     }
 
-    private function connect() {
-        $socket = stream_socket_client("tcp://{$this->faktoryHost}:{$this->faktoryPort}", $errno, $errstr, 30);
-        if (!$socket) {
+    private function connect()
+    {
+        if ($this->socket !== null) {
+            return true;
+        }
+
+        $this->socket = stream_socket_client("tcp://{$this->faktoryHost}:{$this->faktoryPort}", $errno, $errstr, 30);
+        if (!$this->socket) {
             echo "$errstr ($errno)\n";
             return false;
         } else {
-            $response = $this->readLine($socket);
+            $response = $this->readLine();
 
             $requestDefaults = [
                 'v' => 2
@@ -80,45 +85,53 @@ class FaktoryClient {
 
                 $payloadArray = json_decode(substr($response, strpos($response, '{')));
 
-                $authData = $this->faktoryPassword.$payloadArray->s;
+                $authData = $this->faktoryPassword . $payloadArray->s;
                 for ($i = 0; $i < $payloadArray->i; $i++) {
                     $authData = hash('sha256', $authData, true);
                 }
-                
+
                 $requestWithPassword = json_encode(array_merge(['pwdhash' => bin2hex($authData)], $requestDefaults));
-                $responseWithPassword = $this->writeLine($socket, 'HELLO', $requestWithPassword);
+                $responseWithPassword = $this->writeLine('HELLO', $requestWithPassword);
                 if (strpos($responseWithPassword, "ERR Invalid password")) {
                     throw new \Exception('Password is incorrect.');
                 }
-
             } else {
                 // Doesn't require password
                 if ($response !== "+HI {\"v\":2}\r\n") {
                     throw new \Exception('Hi not received :(');
                 }
-    
-                $this->writeLine($socket, 'HELLO', json_encode($requestDefaults));
+
+                $this->writeLine('HELLO', json_encode($requestDefaults));
             }
-            return $socket;
+            return true;
         }
     }
 
-    private function readLine($socket) {
-        $contents = fgets($socket, 1024);
+    private function readLine()
+    {
+        if (!$this->connect()) {
+            return null;
+        }
+        $contents = fgets($this->socket, 1024);
         while (strpos($contents, "\r\n") === false) {
-            $contents .= fgets($socket, 1024 - strlen($contents));
+            $contents .= fgets($this->socket, 1024 - strlen($contents));
         }
         return $contents;
     }
 
-    private function writeLine($socket, $command, $json) {
-        $buffer = $command.' '.$json."\r\n";
-        stream_socket_sendto($socket, $buffer);
-        $read = $this->readLine($socket);
-        return $read;
+    private function writeLine($command, $json)
+    {
+        if (!$this->connect()) {
+            return null;
+        }
+        $buffer = $command . ' ' . $json . "\r\n";
+        stream_socket_sendto($this->socket, $buffer);
+        return $this->readLine();
     }
 
-    private function close($socket) {
-        fclose($socket);
+    private function close()
+    {
+        fclose($this->socket);
+        $this->socket = null;
     }
 }

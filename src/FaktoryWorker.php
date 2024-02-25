@@ -2,33 +2,39 @@
 
 namespace FaktoryQueue;
 
-class FaktoryWorker {
+class FaktoryWorker
+{
     private $client;
     private $queues;
     private $jobTypes = [];
     private $stop = false;
     private $id = null;
-    
-    public function __construct($client, $processId = null) {
+
+    public function __construct($client, $processId = null)
+    {
         $this->client = $client;
         $this->queues = array('default');
         $this->id = $processId ?: substr(sha1(rand()), 0, 8);
         $this->client->setWorker($this);
     }
 
-    public function getID() {
+    public function getID()
+    {
         return $this->id;
     }
 
-    public function setQueues($queues) {
+    public function setQueues($queues)
+    {
         $this->queues = $queues;
     }
 
-    public function register($jobType, $callable) {
+    public function register($jobType, $callable)
+    {
         $this->jobTypes[$jobType] = $callable;
     }
 
-    public function run($daemonize = false) {
+    public function run($daemonize = false)
+    {
         do {
             $job = $this->client->fetch($this->queues);
 

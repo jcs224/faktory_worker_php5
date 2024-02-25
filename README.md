@@ -1,17 +1,19 @@
-# Faktory PHP 5 Library
-[Faktory](https://github.com/contribsys/faktory) job queue library for PHP. Compatible with PHP 5.6 (and maybe lower, but untested)
+# Faktory PHP Library
 
-### Supported Faktory versions
-- 0.9.7
-- 1.0.1
+[Faktory](https://github.com/contribsys/faktory) job queue library for PHP.
+
+## Supported Faktory versions
+
+- 1.7.0
 
 It could work on earlier versions, but untested.
 
 ## Installation / Usage
 
-Formal instructions are coming soon. In the meantime, use Composer to install the package:
-```
-composer require jcs224/faktory_worker_php5
+Use Composer to install the package:
+
+```shell
+composer require chrisvaughn/faktory_worker_php
 ```
 
 ## Pushing jobs
@@ -36,7 +38,9 @@ $client->push($job2);
 ```
 
 ### Scheduled jobs
+
 You can also schedule when jobs will run as you push them onto the queue. Here are some examples:
+
 ```php
 $client = new FaktoryClient('faktory', '7419');
 

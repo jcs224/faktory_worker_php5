@@ -2,20 +2,24 @@
 
 namespace FaktoryQueue;
 
-class FaktoryJob implements \JsonSerializable {
+class FaktoryJob implements \JsonSerializable
+{
     private $id;
     private $type;
     private $args;
     private $at;
 
-    public function __construct($type, $args) {
+
+    public function __construct($type, $args)
+    {
         $this->id = uniqid();
         $this->type = $type;
         $this->args = $args;
         $this->at = date(DATE_RFC3339);
     }
 
-    public function jsonSerialize() {
+    public function jsonSerialize()
+    {
         return [
             'jid' => $this->id,
             'jobtype' => $this->type,
@@ -24,7 +28,8 @@ class FaktoryJob implements \JsonSerializable {
         ];
     }
 
-    public function inSeconds($seconds) {
+    public function inSeconds($seconds)
+    {
         if (!is_numeric($seconds)) {
             throw new \Exception('expected a number in seconds');
         }
@@ -32,7 +37,8 @@ class FaktoryJob implements \JsonSerializable {
         $this->at($date);
     }
 
-    public function inMinutes($minutes) {
+    public function inMinutes($minutes)
+    {
         if (!is_numeric($minutes)) {
             throw new \Exception('expected a number in minutes');
         }
@@ -41,7 +47,8 @@ class FaktoryJob implements \JsonSerializable {
         $this->at($date);
     }
 
-    public function inHours($hours) {
+    public function inHours($hours)
+    {
         if (!is_numeric($hours)) {
             throw new \Exception('expected a number in hours');
         }
@@ -50,7 +57,8 @@ class FaktoryJob implements \JsonSerializable {
         $this->at($date);
     }
 
-    public function at($date) {
+    public function at($date)
+    {
         if (!$this->validateDate($date)) {
             throw new \Exception('expected a date in RFC3339 format');
         }
@@ -58,7 +66,8 @@ class FaktoryJob implements \JsonSerializable {
         $this->at = $date;
     }
 
-    private function validateDate($date, $format = DATE_RFC3339) {
+    private function validateDate($date, $format = DATE_RFC3339)
+    {
         $d = \DateTime::createFromFormat($format, $date);
         return $d && $d->format($format) === $date;
     }
